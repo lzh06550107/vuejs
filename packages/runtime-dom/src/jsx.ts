@@ -1,6 +1,8 @@
 // Note: this file is auto concatenated to the end of the bundled d.ts during
 // build.
 
+// 该文件会在构建过程中被自动拼接到最终的 d.ts 文件的末尾。通常，类型定义文件（.d.ts 文件）会在构建过程中进行合并，以形成最终的单一文件
+
 // This code is based on react definition in DefinitelyTyped published under the MIT license.
 //      Repository: https://github.com/DefinitelyTyped/DefinitelyTyped
 //      Path in the repository: types/react/index.d.ts

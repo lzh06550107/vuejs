@@ -9,6 +9,9 @@
  * global replacements, and rewrite the original declarations as object literals.
  *
  * This file is expected to be executed with project root as cwd.
+ *
+ * 这段代码为处理 TypeScript 枚举提供了一种高效的解决方案，通过将枚举转换为对象字面量并在代码中内联，旨在提高性能和减少最终捆绑包的大小。
+ * 通过使用 Babel 解析器和 MagicString，代码能够灵活地分析和修改 AST，为开发者提供了一种便捷的构建流程
  */
 
 import * as assert from 'node:assert'
@@ -43,12 +46,13 @@ function evaluate(exp) {
 // this is called in the build script entry once
 // so the data can be shared across concurrent Rollup processes
 export function scanEnums() {
+  // 扫描枚举
   /** @type {{ [file: string]: EnumDeclaration[] }} */
   const declarations = Object.create(null)
   /** @type {{ [id_key: `${string}.${string}`]: string; }} */
   const defines = Object.create(null)
 
-  // 1. grep for files with exported enum
+  // 1. grep for files with exported enum 使用 git grep 找到所有导出的枚举定义的文件
   const { stdout } = spawnSync('git', ['grep', `export enum`])
   const files = [
     ...new Set(
@@ -64,6 +68,7 @@ export function scanEnums() {
   for (const relativeFile of files) {
     const file = path.resolve(process.cwd(), relativeFile)
     const content = readFileSync(file, 'utf-8')
+    // 解析每个文件的 AST（抽象语法树），收集枚举信息（名称、成员、初始化值等）
     const ast = parse(content, {
       plugins: ['typescript'],
       sourceType: 'module',
@@ -206,6 +211,7 @@ export function scanEnums() {
     defines,
   }
 
+  // 将收集到的枚举信息存储到缓存文件中 (temp/enum.json)
   writeFileSync(ENUM_CACHE_PATH, JSON.stringify(enumData))
 
   return () => {
@@ -221,10 +227,11 @@ export function inlineEnums() {
     throw new Error('enum cache needs to be initialized before creating plugin')
   }
   /**
-   * @type {EnumData}
+   * @type {EnumData} 读取缓存文件中的枚举数据
    */
   const enumData = JSON.parse(readFileSync(ENUM_CACHE_PATH, 'utf-8'))
 
+  // 在转换过程中将枚举声明重写为对象字面量，并在使用枚举的文件中注入定义
   // 3. during transform:
   //    3.1 files w/ enum declaration: rewrite declaration as object literal
   //    3.2 files using enum: inject into esbuild define

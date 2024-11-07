@@ -601,6 +601,12 @@ const emptyAppContext = createAppContext()
 
 let uid = 0
 
+/**
+ *
+ * @param vnode
+ * @param parent
+ * @param suspense
+ */
 export function createComponentInstance(
   vnode: VNode,
   parent: ComponentInternalInstance | null,
@@ -777,10 +783,17 @@ export const unsetCurrentInstance = (): void => {
 
 const isBuiltInTag = /*@__PURE__*/ makeMap('slot,component')
 
+/**
+ * 用于验证组件的名称是否合法。具体来说，它确保组件名称不会与 HTML 内置标签或保留的标签名称冲突。如果组件名称与这些标签相同，则会触发警告
+ * @param name
+ * @param isNativeTag
+ */
 export function validateComponentName(
   name: string,
   { isNativeTag }: AppConfig,
 ): void {
+  // isBuiltInTag(name) 检查 name 是否为内置 HTML 标签的函数
+  // isNativeTag(name) 用来检测某个标签是否是原生标签
   if (isBuiltInTag(name) || isNativeTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component id: ' + name,
@@ -967,11 +980,16 @@ let installWithProxy: (i: ComponentInternalInstance) => void
 /**
  * For runtime-dom to register the compiler.
  * Note the exported method uses any to avoid d.ts relying on the compiler types.
+ * 用于将一个编译器函数（_compile）注册到运行时环境中
  */
 export function registerRuntimeCompiler(_compile: any): void {
+  // 将传入的 _compile 函数赋值给一个名为 compile 的变量。这个变量将用来保存传入的编译器函数，供后续使用
   compile = _compile
   installWithProxy = i => {
+    // 通过 i.render!._rc 判断 i.render 是否有 _rc 属性。这个条件检查通常是用于验证该组件实例是否已经经过某种处理（如编译）。
+    // ! 操作符表示我们确信 i.render 不为 null 或 undefined，这是 TypeScript 的非空断言操作符。
     if (i.render!._rc) {
+      // 在组件的上下文（ctx）中应用 Proxy，以便在运行时拦截和增强对组件实例属性的访问
       i.withProxy = new Proxy(i.ctx, RuntimeCompiledPublicInstanceProxyHandlers)
     }
   }
@@ -1245,7 +1263,12 @@ export function formatComponentName(
   return name ? classify(name) : isRoot ? `App` : `Anonymous`
 }
 
+/**
+ * 定义了一个类型保护函数 isClassComponent，用于判断给定的 value 是否是一个类组件（Class Component）。如果 value 是类组件，该函数将返回 true，否则返回 false
+ * @param value
+ */
 export function isClassComponent(value: unknown): value is ClassComponent {
+  // __vccOpts 是 Vue 在类组件对象上添加的一个标识属性，表明该对象是一个类组件
   return isFunction(value) && '__vccOpts' in value
 }
 

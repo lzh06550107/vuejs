@@ -14,12 +14,15 @@ const banConstEnum = {
 
 export default tseslint.config(
   {
-    files: ['**/*.js', '**/*.ts', '**/*.tsx'],
-    extends: [tseslint.configs.base],
+    // 基本配置
+    files: ['**/*.js', '**/*.ts', '**/*.tsx'], // 文件匹配
+    extends: [tseslint.configs.base], // 扩展配置，是 @typescript-eslint/eslint-plugin 包提供的基础配置，你可以在此基础上自定义和扩展更多适合项目需求的规则。
     plugins: {
+      // 插件
       'import-x': importX,
     },
     rules: {
+      // 包含了一些全局规则
       'no-debugger': 'error',
       'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
       // most of the codebase are expected to be env agnostic
@@ -76,18 +79,21 @@ export default tseslint.config(
 
   // tests, no restrictions (runs in Node / Vitest with jsdom)
   {
+    // 测试配置
     files: [
+      // 文件匹配
       '**/__tests__/**',
       'packages-private/dts-test/**',
       'packages-private/dts-build-test/**',
     ],
-    plugins: { vitest },
+    plugins: { vitest }, // 插件
     languageOptions: {
       globals: {
         ...vitest.environments.env.globals,
       },
     },
     rules: {
+      // 规则
       'no-console': 'off',
       'no-restricted-globals': 'off',
       'no-restricted-syntax': 'off',
@@ -98,7 +104,8 @@ export default tseslint.config(
 
   // shared, may be used in any env
   {
-    files: ['packages/shared/**', 'eslint.config.js'],
+    // 共享模块配置
+    files: ['packages/shared/**', 'eslint.config.js'], // 文件匹配
     rules: {
       'no-restricted-globals': 'off',
     },
@@ -106,6 +113,7 @@ export default tseslint.config(
 
   // Packages targeting DOM
   {
+    // DOM 目标包配置
     files: ['packages/{vue,vue-compat,runtime-dom}/**'],
     rules: {
       'no-restricted-globals': ['error', ...NodeGlobals],
@@ -114,6 +122,7 @@ export default tseslint.config(
 
   // Packages targeting Node
   {
+    // Node 目标包配置
     files: ['packages/{compiler-sfc,compiler-ssr,server-renderer}/**'],
     rules: {
       'no-restricted-globals': ['error', ...DOMGlobals],
@@ -123,6 +132,7 @@ export default tseslint.config(
 
   // Private package, browser only + no syntax restrictions
   {
+    // 私有包配置（仅限浏览器环境）
     files: [
       'packages-private/template-explorer/**',
       'packages-private/sfc-playground/**',
@@ -136,6 +146,7 @@ export default tseslint.config(
 
   // JavaScript files
   {
+    // JavaScript 文件配置
     files: ['*.js'],
     rules: {
       // We only do `no-unused-vars` checks for js files, TS files are checked by TypeScript itself.
@@ -145,6 +156,7 @@ export default tseslint.config(
 
   // Node scripts
   {
+    // Node 脚本配置
     files: [
       'eslint.config.js',
       'rollup*.config.js',
@@ -162,6 +174,7 @@ export default tseslint.config(
 
   // Import nodejs modules in compiler-sfc
   {
+    // 特定文件夹配置
     files: ['packages/compiler-sfc/src/**'],
     rules: {
       'import-x/no-nodejs-modules': ['error', { allow: builtinModules }],
@@ -169,6 +182,7 @@ export default tseslint.config(
   },
 
   {
+    // 忽略文件夹配置，忽略 dist、temp、coverage、.idea 等文件夹
     ignores: [
       '**/dist/',
       '**/temp/',

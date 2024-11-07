@@ -326,3 +326,74 @@ Features that start with `COMPILER_` are compiler-specific: if you are using the
 | COMPILER_V_FOR_REF           | ✔   | `ref` in `v-for` (compiler support)                                   |                                                                                                                           |
 | COMPILER_NATIVE_TEMPLATE     | ✔   | `<template>` with no special directives now renders as native element |                                                                                                                           |
 | COMPILER_FILTERS             | ✔   | filters (compiler support)                                            |                                                                                                                           |
+
+## 功能参考
+
+### 兼容性类型
+
+- ✔ 完全兼容
+- ◐ 部分兼容（有警告）
+- ⨂ 不兼容（仅警告）
+- ⭘ 仅兼容（没有警告）
+
+### 不兼容
+
+> 应该提前修复，否则可能会导致错误
+
+| ID                                      | 类型  | 描述                                                                                   | 文档                                                                                                               |
+| --------------------------------------- | ----- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| GLOBAL_MOUNT_CONTAINER                 | ⨂    | 挂载的应用程序不会替代它挂载的元素                                                     | [链接](https://v3-migration.vuejs.org/breaking-changes/mount-changes.html)                                        |
+| CONFIG_DEVTOOLS                         | ⨂    | 生产环境中的开发工具现在是构建时的标志                                                 | [链接](https://github.com/vuejs/core/tree/main/packages/vue#bundler-build-feature-flags)                          |
+| COMPILER_V_IF_V_FOR_PRECEDENCE          | ⨂    | `v-if` 和 `v-for` 优先级在同一个元素上使用时已发生变化                                | [链接](https://v3-migration.vuejs.org/breaking-changes/v-if-v-for.html)                                           |
+| COMPILER_V_IF_SAME_KEY                  | ⨂    | `v-if` 分支不能再使用相同的 key                                                        | [链接](https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#on-conditional-branches)                |
+| COMPILER_V_FOR_TEMPLATE_KEY_PLACEMENT   | ⨂    | `<template v-for>` 的 key 现在应该放在 `<template>` 上                                 | [链接](https://v3-migration.vuejs.org/breaking-changes/key-attribute.html#with-template-v-for)                    |
+| COMPILER_SFC_FUNCTIONAL                 | ⨂    | `<template functional>` 在 SFC 中不再受支持                                             | [链接](https://v3-migration.vuejs.org/breaking-changes/functional-components.html#single-file-components-sfcs)    |
+
+### 部分兼容（有警告）
+
+| ID                       | 类型  | 描述                                                                                                                                                    | 文档                                                                                                                       |
+| ------------------------ | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| CONFIG_IGNORED_ELEMENTS  | ◐    | `config.ignoredElements` 现在是 `config.compilerOptions.isCustomElement`（仅在浏览器编译器构建中）。如果使用构建设置，`isCustomElement` 必须通过构建配置传递。 | [链接](https://v3-migration.vuejs.org/breaking-changes/global-api.html#config-ignoredelements-is-now-config-iscustomelement) |
+| COMPILER_INLINE_TEMPLATE | ◐    | `inline-template` 被移除（仅在浏览器编译器构建中支持兼容）                                                                                             | [链接](https://v3-migration.vuejs.org/breaking-changes/inline-template-attribute.html)                                       |
+| PROPS_DEFAULT_THIS       | ◐    | props 默认工厂不再能访问 `this`（在兼容模式下，`this` 不是一个真实的实例 - 它只暴露 props、`$options` 和注入的内容）                                     | [链接](https://v3-migration.vuejs.org/breaking-changes/props-default-this.html)                                            |
+| INSTANCE_DESTROY         | ◐    | `$destroy` 实例方法被移除（仅在根实例上支持兼容模式）                                                                                                     |                                                                                                                            |
+| GLOBAL_PRIVATE_UTIL      | ◐    | `Vue.util` 变为私有，不再可用                                                                                                                           |                                                                                                                            |
+| CONFIG_PRODUCTION_TIP    | ◐    | `config.productionTip` 不再必要                                                                                                                         | [链接](https://v3-migration.vuejs.org/breaking-changes/global-api.html#config-productiontip-removed)                       |
+| CONFIG_SILENT            | ◐    | `config.silent` 被移除                                                                                                                                  |                                                                                                                            |
+
+### 仅兼容（没有警告）
+
+| ID                    | 类型  | 描述                                    | 文档                                                                  |
+| --------------------- | ----- | --------------------------------------- | --------------------------------------------------------------------- |
+| TRANSITION_CLASSES    | ⭘    | 过渡的进入/离开类发生了变化            | [链接](https://v3-migration.vuejs.org/breaking-changes/transition.html) |
+
+### 完全兼容
+
+| ID                         | 类型  | 描述                                                                | 文档                                                                                                                         |
+| -------------------------- | ----- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| GLOBAL_MOUNT               | ✔     | new Vue() -> createApp                                               | [链接](https://v3-migration.vuejs.org/breaking-changes/global-api.html#mounting-app-instance)                                  |
+| GLOBAL_EXTEND              | ✔     | Vue.extend 被移除（使用 `defineComponent` 或 `extends` 选项）         | [链接](https://v3-migration.vuejs.org/breaking-changes/global-api.html#vue-extend-replaced-by-definecomponent)                 |
+| GLOBAL_PROTOTYPE           | ✔     | `Vue.prototype` -> `app.config.globalProperties`                     | [链接](https://v3-migration.vuejs.org/breaking-changes/global-api.html#vue-prototype-replaced-by-config-globalproperties)      |
+| GLOBAL_SET                 | ✔     | `Vue.set` 被移除（不再需要）                                         |                                                                                                                             |
+| GLOBAL_DELETE              | ✔     | `Vue.delete` 被移除（不再需要）                                      |                                                                                                                             |
+| GLOBAL_OBSERVABLE          | ✔     | `Vue.observable` 被移除（使用 `reactive`）                           | [链接](https://vuejs.org/api/reactivity-core.html#reactive)                                                                  |
+| CONFIG_KEY_CODES           | ✔     | config.keyCodes 被移除                                               | [链接](https://v3-migration.vuejs.org/breaking-changes/keycode-modifiers.html)                                               |
+| CONFIG_WHITESPACE          | ✔     | 在 Vue 3 中，空格的默认值为 `"condense"`                            |                                                                                                                             |
+| INSTANCE_SET               | ✔     | `vm.$set` 被移除（不再需要）                                         |                                                                                                                             |
+| INSTANCE_DELETE            | ✔     | `vm.$delete` 被移除（不再需要）                                      |                                                                                                                             |
+| INSTANCE_EVENT_EMITTER     | ✔     | `vm.$on`、`vm.$off`、`vm.$once` 被移除                               | [链接](https://v3-migration.vuejs.org/breaking-changes/events-api.html)                                                      |
+| INSTANCE_EVENT_HOOKS       | ✔     | 实例不再触发 `hook:x` 事件                                           | [链接](https://v3-migration.vuejs.org/breaking-changes/vnode-lifecycle-events.html)                                          |
+| INSTANCE_CHILDREN          | ✔     | `vm.$children` 被移除                                                 | [链接](https://v3-migration.vuejs.org/breaking-changes/children.html)                                                        |
+| INSTANCE_LISTENERS         | ✔     | `vm.$listeners` 被移除                                                | [链接](https://v3-migration.vuejs.org/breaking-changes/listeners-removed.html)                                               |
+| INSTANCE_SCOPED_SLOTS      | ✔     | `vm.$scopedSlots` 被移除；`vm.$slots` 现在暴露函数                  | [链接](https://v3-migration.vuejs.org/breaking-changes/slots-unification.html)                                               |
+| INSTANCE_ATTRS_CLASS_STYLE | ✔     | `$attrs` 现在包括 `class` 和 `style`                                  | [链接](https://v3-migration.vuejs.org/breaking-changes/attrs-includes-class-style.html)                                      |
+| OPTIONS_DATA_FN            | ✔     | `data` 必须始终是一个函数                                             | [链接](https://v3-migration.vuejs.org/breaking-changes/data-option.html)                                                     |
+| OPTIONS_DATA_MERGE         | ✔     | `data` 从混入或扩展中被浅合并                                         | [链接](https://v3-migration.vuejs.org/breaking-changes/data-option.html)                                                     |
+| OPTIONS_BEFORE_DESTROY     | ✔     | `beforeDestroy` -> `beforeUnmount`                                     |                                                                                                                             |
+| OPTIONS_DESTROYED          | ✔     | `destroyed` -> `unmounted`                                           |                                                                                                                             |
+| WATCH_ARRAY                | ✔     | 监视数组不再会在变更时触发，除非设置为深度监视                        | [链接](https://v3-migration.vuejs.org/breaking-changes/watch.html)                                                           |
+| V_ON_KEYCODE_MODIFIER      | ✔     | `v-on` 不再支持 keyCode 修饰符                                       | [链接](https://v3-migration.vuejs.org/breaking-changes/keycode-modifiers.html)                                               |
+| CUSTOM_DIR                 | ✔     | 自定义指令的钩子名称发生了变化                                       | [链接](https://v3-migration.vuejs.org/breaking-changes/custom-directives.html)                                               |
+| ATTR_FALSE_VALUE           | ✔     | 如果绑定值为布尔 `false`，不再移除属性                               | [链接](https://v3-migration.vuejs.org/breaking-changes/attribute-coercion.html)                                              |
+| ATTR_ENUMERATED_COERCION   | ✔     | 不再
+

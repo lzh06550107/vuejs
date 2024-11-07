@@ -32,6 +32,7 @@ import {
   unref,
   warn,
 } from '@vue/runtime-core'
+
 import {
   camelize,
   extend,
@@ -41,44 +42,79 @@ import {
   isPlainObject,
   toNumber,
 } from '@vue/shared'
+
+// 从当前目录导入的模块
+// createApp：用于创建客户端应用实例的核心函数。
+// createSSRApp：用于创建支持服务端渲染的应用实例，主要在 SSR 环境中使用。
+// render：通常用于手动渲染或更新特定的 DOM 节点。在 Vue 3 中，这个函数可以配合 createApp 和 createSSRApp 使用，允许在不同的 DOM 上执行渲染操作
 import { createApp, createSSRApp, render } from '.'
 
 // marker for attr removal
+// REMOVAL 常被用于标识或跟踪 DOM 属性，特别是在模板编译或运行时中，通过将其与需要删除的属性关联，指示该属性需要从 DOM 中移除
 const REMOVAL = {}
 
+// 泛型类型，定义了 Vue 自定义元素的构造函数类型
+// 泛型参数 P：代表自定义元素的属性类型，默认是空对象 {}
 export type VueElementConstructor<P = {}> = {
+  // 构造函数签名，允许在创建时传入一个初始属性对象 initialProps
+  // * initialProps 的类型是 Record<string, any>，即一个键值对的对象，每个键都是字符串，值可以是任意类型
+  // 返回类型：VueElement & P，表示返回的实例同时具备 VueElement 和 P 的属性和方法。
+  // * VueElement 是 Vue 中自定义元素的基础类型，可能包含生命周期方法和渲染逻辑。
+  // * P 用于扩展自定义元素的属性类型，使之更具灵活性，适应不同的属性需求。
   new (initialProps?: Record<string, any>): VueElement & P
 }
 
+// 定义了用于配置 Vue 自定义元素的选项
 export interface CustomElementOptions {
-  styles?: string[]
-  shadowRoot?: boolean
-  nonce?: string
-  configureApp?: (app: App) => void
+  styles?: string[] // 定义自定义元素的样式数组
+  shadowRoot?: boolean // 是否使用 Shadow DOM
+  nonce?: string // 安全属性，用于内联样式和脚本的 nonce 值
+  configureApp?: (app: App) => void // 配置函数，用于自定义 app 的初始化逻辑
 }
 
 // defineCustomElement provides the same type inference as defineComponent
 // so most of the following overloads should be kept in sync w/ defineComponent.
+// defineCustomElement 函数用于定义一个 Vue 自定义元素（Custom Element），可以将 Vue 组件作为原生 HTML 元素使用，并提供与 defineComponent 相似的类型推导
 
+// defineCustomElement 函数有两个重载（overload），主要区别在于 props 的定义方式。每个重载函数都接受一个 setup 函数和一个 options 对象。
+// 不同的 props 定义方式适应了不同类型的属性需求，从而提升了灵活性
 // overload 1: direct setup function
 export function defineCustomElement<Props, RawBindings = object>(
+  // setup 是组件的核心逻辑定义，接受两个参数：
+  // * props：定义了传入自定义元素的属性。
+  // * ctx：提供上下文对象，包含事件、插槽等信息。
   setup: (props: Props, ctx: SetupContext) => RawBindings | RenderFunction,
+  // 组件配置对象
+  // 其中包含以下几个属性：
+  // * name：组件的名称。
+  // * inheritAttrs：是否继承原生 HTML 属性。
+  // * emits：定义自定义事件的列表。
   options?: Pick<ComponentOptions, 'name' | 'inheritAttrs' | 'emits'> &
     CustomElementOptions & {
+      // props：这是一个可选项（? 表示可选），用于声明组件可以接收哪些属性。它以数组的形式定义属性名称列表
+      // keyof Props：表示 Props 类型的所有键（即属性名称）。
+      // 通过 keyof 操作符，可以获得 Props 类型的键构成的联合类型（例如，如果 Props 类型包含 title 和 subtitle，则 keyof Props 就是 'title' | 'subtitle'）
+      // (keyof Props)[]：数组类型，包含 Props 类型的键的列表。这意味着 props 中列出的每个字符串必须是 Props 类型的一个键
       props?: (keyof Props)[]
     },
-): VueElementConstructor<Props>
+): VueElementConstructor<Props> // 用于实例化一个 Vue 自定义元素，带有类型 Props 的属性
+
 export function defineCustomElement<Props, RawBindings = object>(
   setup: (props: Props, ctx: SetupContext) => RawBindings | RenderFunction,
   options?: Pick<ComponentOptions, 'name' | 'inheritAttrs' | 'emits'> &
     CustomElementOptions & {
+      // 这是 Vue 中用于描述组件属性的类型，接受泛型 Props，其结构类似于一个对象，其中每个键都是组件的属性名，每个键的值是一个对象，用于定义该属性的类型、默认值、是否为必需等
+      // 其结构类似于一个对象，其中每个键都是组件的属性名，每个键的值是一个对象，用于定义该属性的类型(type)、默认值(default)、是否为必需(required)等
       props?: ComponentObjectPropsOptions<Props>
     },
 ): VueElementConstructor<Props>
 
 // overload 2: defineCustomElement with options object, infer props from options
+// 这个 defineCustomElement 函数的重载版本允许开发者通过一个包含组件详细配置的 options 对象来定义自定义元素。
+// 它提供了多种泛型参数，使开发者可以精确地控制组件的属性、事件、数据、计算属性、方法、插槽、指令等功能的类型推断。
+// 这种配置方式对复杂组件尤其适用，能够实现更高的类型安全和灵活性。
 export function defineCustomElement<
-  // props
+  // props 用于定义组件的 props 选项
   RuntimePropsOptions extends
     ComponentObjectPropsOptions = ComponentObjectPropsOptions,
   PropsKeys extends string = string,
@@ -153,6 +189,8 @@ export function defineCustomElement<
 
 // overload 3: defining a custom element from the returned value of
 // `defineComponent`
+// 在这个重载版本中，defineCustomElement 函数允许从 defineComponent 函数的返回值创建自定义元素。
+// 这种方法可以直接使用 defineComponent 定义的组件，将其转换为自定义元素。
 export function defineCustomElement<
   // this should be `ComponentPublicInstanceConstructor` but that type is not exported
   T extends { new (...args: any[]): ComponentPublicInstance<any> },
@@ -164,6 +202,9 @@ export function defineCustomElement<
 >
 
 /*! #__NO_SIDE_EFFECTS__ */
+// 用于将一个 Vue 组件定义为自定义元素。它将 Vue 组件封装成符合 Web Components 标准的自定义元素，允许开发者在非 Vue 应用环境中使用这个组件
+// 将 Vue 组件定义（options 和 extraOptions）转换为一个自定义元素类 VueCustomElement，
+// 使得这个组件可以注册为原生的 Web Components，自定义标签可以在任何支持 Web Components 的环境中直接使用
 export function defineCustomElement(
   options: any,
   extraOptions?: ComponentOptions,
@@ -172,8 +213,13 @@ export function defineCustomElement(
    */
   _createApp?: CreateAppFunction<Element>,
 ): VueElementConstructor {
+  // 使用 defineComponent 方法将 options 和 extraOptions 转换成一个 Vue 组件定义对象 Comp
   const Comp = defineComponent(options, extraOptions) as any
+  // 如果 Comp 是一个简单对象（未实例化为 Vue 组件类），则通过 extend 方法扩展 Comp，确保组件选项包含在内
   if (isPlainObject(Comp)) extend(Comp, extraOptions)
+  // 定义一个类 VueCustomElement，继承自 VueElement，表示新的自定义元素。
+  // VueCustomElement 类内部包含一个静态属性 def，指向 Comp（组件定义），用来标识组件。
+  // 构造函数通过 super 调用 VueElement 的构造函数，将 Comp、initialProps 和 _createApp 传递给 VueElement。
   class VueCustomElement extends VueElement {
     static def = Comp
     constructor(initialProps?: Record<string, any>) {
@@ -185,47 +231,57 @@ export function defineCustomElement(
 }
 
 /*! #__NO_SIDE_EFFECTS__ */
+// 用来定义支持 SSR 的自定义元素
 export const defineSSRCustomElement = ((
   options: any,
   extraOptions?: ComponentOptions,
 ) => {
   // @ts-expect-error
+  // 该函数调用 defineCustomElement，但传入的第三个参数为 createSSRApp。这意味着生成的自定义元素使用 createSSRApp 创建的 Vue 实例，以便在 SSR 环境中渲染。
   return defineCustomElement(options, extraOptions, createSSRApp)
 }) as typeof defineCustomElement
 
+// 这段代码的关键在于兼容性：在不支持 HTMLElement 的环境（如某些服务器环境）中，它会定义一个空的基础类 class {}，避免运行时错误
 const BaseClass = (
   typeof HTMLElement !== 'undefined' ? HTMLElement : class {}
 ) as typeof HTMLElement
 
 type InnerComponentDef = ConcreteComponent & CustomElementOptions
 
+// 这个类是用来创建 Vue 自定义元素（Vue Custom Elements）的。它支持 Vue 组件的生命周期、属性、插槽等功能，并可以与 Web Components API 配合使用
+// VueElement 类为 Vue 组件提供了一个容器，使得它们能够作为自定义元素（Web Component）使用。
+// 这个类处理了组件的生命周期、属性管理、插槽渲染、样式应用等功能，确保 Vue 组件能够在自定义元素的上下文中正确运行
 export class VueElement
   extends BaseClass
   implements ComponentCustomElementInterface
 {
+  /**
+   * 标记当前实例为 Vue 自定义元素
+   */
   _isVueCE = true
   /**
-   * @internal
+   * @internal 保存 Vue 组件实例
    */
   _instance: ComponentInternalInstance | null = null
   /**
-   * @internal
+   * @internal Vue 应用实例，用来挂载 Vue 组件
    */
   _app: App | null = null
   /**
-   * @internal
+   * @internal 根元素（可能是 Shadow DOM 或普通 DOM）
    */
   _root: Element | ShadowRoot
   /**
-   * @internal
+   * @internal 用于样式的 nonce 值
    */
   _nonce: string | undefined = this._def.nonce
 
   /**
-   * @internal
+   * @internal 表示插槽传送目标
    */
   _teleportTarget?: HTMLElement
 
+  // 这些是内部标志和状态，帮助管理组件的生命周期、属性等
   private _connected = false
   private _resolved = false
   private _numberProps: Record<string, true> | null = null
@@ -276,6 +332,7 @@ export class VueElement
     }
   }
 
+  // 当自定义元素被插入到 DOM 时调用。它会解析插槽、设置父元素等
   connectedCallback(): void {
     // avoid resolving component if it's not connected
     if (!this.isConnected) return
@@ -320,6 +377,7 @@ export class VueElement
     }
   }
 
+  // 当自定义元素从 DOM 中移除时调用。它负责清理实例和应用
   disconnectedCallback(): void {
     this._connected = false
     nextTick(() => {
@@ -338,6 +396,7 @@ export class VueElement
 
   /**
    * resolve inner component definition (handle possible async component)
+   * 解决组件的定义，支持异步组件加载
    */
   private _resolveDef() {
     if (this._pendingResolve) {
@@ -411,6 +470,7 @@ export class VueElement
     }
   }
 
+  // 将 Vue 应用挂载到自定义元素的根节点
   private _mount(def: InnerComponentDef) {
     if ((__DEV__ || __FEATURE_PROD_DEVTOOLS__) && !def.name) {
       // @ts-expect-error

@@ -383,22 +383,41 @@ export function createBlock(
   )
 }
 
+/**
+ * 定义了一个类型保护函数 isVNode，用于判断给定的值 value 是否为 VNode（Vue 虚拟节点）。如果 value 是一个虚拟节点，函数将返回 true，否则返回 false
+ * @param value
+ */
 export function isVNode(value: any): value is VNode {
+  // __v_isVNode 是 Vue 中的一个特殊属性，用来标识一个对象是否为 VNode。Vue 内部在创建虚拟节点时，会在节点对象上添加这个属性并将其值设为 true
   return value ? value.__v_isVNode === true : false
 }
 
+/**
+ * 用于判断两个虚拟节点 (VNode) 是否为相同类型，即是否需要复用。
+ * 此函数通常用于 Vue 的 patch 过程中，用以确定新旧虚拟节点是否具有相同的类型和关键属性，以决定是否可以复用或需要替换。
+ * @param n1
+ * @param n2
+ */
 export function isSameVNodeType(n1: VNode, n2: VNode): boolean {
+  // 首先判断是否处于开发模式 (__DEV__) 并且 n2 的 shapeFlag 是否包含组件标志（ShapeFlags.COMPONENT）。如果满足此条件并且 n1 包含一个组件实例，则表示这两个节点是组件。
   if (__DEV__ && n2.shapeFlag & ShapeFlags.COMPONENT && n1.component) {
+    // 获取被热更新的组件集合 dirtyInstances，如果 dirtyInstances 包含当前组件实例 (n1.component)，表示该组件在热更新中需要重新加载
     const dirtyInstances = hmrDirtyComponents.get(n2.type as ConcreteComponent)
     if (dirtyInstances && dirtyInstances.has(n1.component)) {
       // #7042, ensure the vnode being unmounted during HMR
       // bitwise operations to remove keep alive flags
+      // 位运算去除 keep-alive 标志
       n1.shapeFlag &= ~ShapeFlags.COMPONENT_SHOULD_KEEP_ALIVE
       n2.shapeFlag &= ~ShapeFlags.COMPONENT_KEPT_ALIVE
       // HMR only: if the component has been hot-updated, force a reload.
+      // 仅在 HMR（热重载）模式下：如果组件已被热更新，则强制重新加载。
       return false
     }
   }
+  // 如果未处于热更新条件下，函数直接判断 n1 和 n2 的 type 和 key 是否相等
+  // * n1.type === n2.type：确保新旧节点的类型相同（如 div、span 或组件类型）。
+  // * n1.key === n2.key：确保 key 值相同，以便在列表渲染中区分不同的节点。
+  // 只有当 type 和 key 都匹配时，返回 true，表示这两个节点可以复用
   return n1.type === n2.type && n1.key === n2.key
 }
 
@@ -421,10 +440,17 @@ export function transformVNodeArgs(
   vnodeArgsTransformer = transformer
 }
 
+/**
+ * createVNodeWithArgsTransform 是开发环境下的版本，它可能对传入的参数进行额外的转换或调试工作，例如检查传入的参数是否符合预期、提供更详细的错误信息等
+ * @param args
+ */
 const createVNodeWithArgsTransform = (
+  // Parameters<typeof _createVNode>：这是 TypeScript 中的内置类型操作，它提取出 _createVNode 函数的参数类型。
+  // 通过 Parameters<typeof _createVNode>，你能够获取到 _createVNode 的所有参数类型，并在 createVNodeWithArgsTransform 中作为 args 的类型
   ...args: Parameters<typeof _createVNode>
 ): VNode => {
   return _createVNode(
+    // vnodeArgsTransformer 是一个可选的函数（它可能是 undefined）。如果存在并且为真值，它将被用来转换传递给 createVNodeWithArgsTransform 的参数
     ...(vnodeArgsTransformer
       ? vnodeArgsTransformer(args, currentRenderingInstance)
       : args),
@@ -451,6 +477,17 @@ const normalizeRef = ({
   ) as any
 }
 
+/**
+ * 是 Vue.js 中创建虚拟 DOM 节点（VNode）的核心函数之一。它用于构建一个 VNode 对象，该对象代表了组件、元素或其他 DOM 结构
+ * @param type VNode 的类型，可以是元素类型、类组件或者动态组件（NULL_DYNAMIC_COMPONENT）
+ * @param props VNode 的属性，可能包括标准 DOM 属性或者自定义的组件属性
+ * @param children VNode 的子节点，可以是字符串（文本子节点）、数组（多个子节点）或者 null
+ * @param patchFlag 用于优化更新时的标记（帮助进行补丁）
+ * @param dynamicProps 动态绑定的属性列表
+ * @param shapeFlag 用于表示 VNode 类型的标志，指示 VNode 是元素、组件等
+ * @param isBlockNode 标识该 VNode 是否是一个块级节点
+ * @param needFullChildrenNormalization 是否需要进行完整的子节点规范化
+ */
 function createBaseVNode(
   type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
   props: (Data & VNodeProps) | null = null,
@@ -461,16 +498,17 @@ function createBaseVNode(
   isBlockNode = false,
   needFullChildrenNormalization = false,
 ): VNode {
+  // 创建了一个 vnode 对象，包含了各种用于表示 VNode 的属性
   const vnode = {
     __v_isVNode: true,
     __v_skip: true,
-    type,
-    props,
-    key: props && normalizeKey(props),
+    type, // VNode 的类型（组件、元素等）
+    props, // VNode 的属性
+    key: props && normalizeKey(props), // 用于规范化 VNode 的 key 和 ref 属性
     ref: props && normalizeRef(props),
     scopeId: currentScopeId,
     slotScopeIds: null,
-    children,
+    children, // VNode 的子节点
     component: null,
     suspense: null,
     ssContent: null,
@@ -483,17 +521,20 @@ function createBaseVNode(
     targetStart: null,
     targetAnchor: null,
     staticCount: 0,
-    shapeFlag,
-    patchFlag,
+    shapeFlag, // 表示 VNode 类型的标志（是否是元素、组件等）
+    patchFlag, // 用于优化更新时的标记
     dynamicProps,
     dynamicChildren: null,
     appContext: null,
     ctx: currentRenderingInstance,
   } as VNode
 
+  // 如果 needFullChildrenNormalization 为 true，则对子节点进行规范化，
+  // 确保它们符合 Vue 所需的格式。规范化过程包括将字符串或数组转换为特定的结构
   if (needFullChildrenNormalization) {
     normalizeChildren(vnode, children)
     // normalize suspense children
+    // 如果 VNode 是一个 Suspense 组件，还会对其子节点进行额外的处理
     if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {
       ;(type as typeof SuspenseImpl).normalize(vnode)
     }
@@ -506,11 +547,13 @@ function createBaseVNode(
   }
 
   // validate key
+  // 在开发模式下，函数检查 key 属性是否有效（例如，NaN 被认为是无效的）。如果无效，则发出警告
   if (__DEV__ && vnode.key !== vnode.key) {
     warn(`VNode created with invalid key (NaN). VNode type:`, vnode.type)
   }
 
   // track vnode for block tree
+  // 如果启用了块树优化且该 VNode 需要更新（通过 patchFlag），则会将该 VNode 加入当前块中进行追踪，以便高效地进行更新
   if (
     isBlockTreeEnabled > 0 &&
     // avoid a block node from tracking itself
@@ -529,6 +572,7 @@ function createBaseVNode(
     currentBlock.push(vnode)
   }
 
+  // 在兼容模式下，函数会转换 v-model 属性，并定义 Vue 2.x 中的旧版 VNode 属性，确保与旧版本兼容
   if (__COMPAT__) {
     convertLegacyVModelProps(vnode)
     defineLegacyVNodeProperties(vnode)
@@ -539,10 +583,23 @@ function createBaseVNode(
 
 export { createBaseVNode as createElementVNode }
 
-export const createVNode = (
-  __DEV__ ? createVNodeWithArgsTransform : _createVNode
-) as typeof _createVNode
+export const createVNode =
+  // 根据开发环境（__DEV__）选择不同的 createVNode 实现。
+  // 具体来说，它通过条件运算符来决定使用 createVNodeWithArgsTransform 还是 _createVNode 函数，并将其类型强制为 _createVNode 的类型
+  (__DEV__ ? createVNodeWithArgsTransform : _createVNode) as typeof _createVNode
 
+/**
+ * _createVNode 是生产环境下的版本，它实现了创建 VNode 的核心功能，但不包含开发环境中的调试和检查逻辑，从而提高性能
+ *
+ * 在 Vue.js 中，VNode 是对 DOM 元素的抽象表示，渲染过程中会被用来构建最终的界面。
+ *
+ * @param type 节点的类型，可以是元素类型、类组件、或者动态组件（NULL_DYNAMIC_COMPONENT）
+ * @param props 该虚拟节点的属性，包含标准 DOM 属性或者自定义组件的 props。如果没有则为 null。
+ * @param children 该虚拟节点的子节点，可能是其他 VNode 或者文本内容
+ * @param patchFlag 用于表示该 VNode 的更新信息，通常用于优化 Vue 的重新渲染过程
+ * @param dynamicProps 动态属性，通常是 Vue 组件中动态绑定的属性
+ * @param isBlockNode 是否为块级节点。这个参数用于一些特殊场景下的块级节点优化
+ */
 function _createVNode(
   type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
   props: (Data & VNodeProps) | null = null,
@@ -551,6 +608,7 @@ function _createVNode(
   dynamicProps: string[] | null = null,
   isBlockNode = false,
 ): VNode {
+  // 如果 type 无效或者是 NULL_DYNAMIC_COMPONENT，则会触发警告并将 type 设置为 Comment
   if (!type || type === NULL_DYNAMIC_COMPONENT) {
     if (__DEV__ && !type) {
       warn(`Invalid vnode type when creating vnode: ${type}.`)
@@ -558,6 +616,7 @@ function _createVNode(
     type = Comment
   }
 
+  // 如果传入的 type 已经是一个 VNode（例如在使用 vnode 作为动态组件时），则会通过 cloneVNode 克隆该节点，并且将新的 props 和 children 合并到克隆的 VNode 上
   if (isVNode(type)) {
     // createVNode receiving an existing vnode. This happens in cases like
     // <component :is="vnode"/>
@@ -578,11 +637,13 @@ function _createVNode(
   }
 
   // class component normalization.
+  // 如果 type 是一个类组件（例如 Vue 2.x 的组件），将其转换为组件的选项对象（__vccOpts
   if (isClassComponent(type)) {
     type = type.__vccOpts
   }
 
   // 2.x async/functional component compat
+  // 如果是兼容模式，type 会被转换为 Vue 2.x 异步组件或者功能组件的兼容实现
   if (__COMPAT__) {
     type = convertLegacyComponent(type, currentRenderingInstance)
   }
@@ -590,7 +651,9 @@ function _createVNode(
   // class & style normalization.
   if (props) {
     // for reactive or proxy objects, we need to clone it to enable mutation.
+    // 对于响应式的 props，会进行克隆，以便进行修改
     props = guardReactiveProps(props)!
+    // class 和 style 会被标准化，确保它们的格式一致
     let { class: klass, style } = props
     if (klass && !isString(klass)) {
       props.class = normalizeClass(klass)
@@ -606,18 +669,20 @@ function _createVNode(
   }
 
   // encode the vnode type information into a bitmap
-  const shapeFlag = isString(type)
+  // 根据 type 的类型，生成一个 shapeFlag，它是一个位掩码，用于标识该 VNode 的类型
+  const shapeFlag = isString(type) // 如果 type 是字符串（HTML 元素标签），标记为 ELEMENT
     ? ShapeFlags.ELEMENT
     : __FEATURE_SUSPENSE__ && isSuspense(type)
-      ? ShapeFlags.SUSPENSE
+      ? ShapeFlags.SUSPENSE // 如果是 Suspense 组件，标记为 SUSPENSE
       : isTeleport(type)
-        ? ShapeFlags.TELEPORT
+        ? ShapeFlags.TELEPORT // 如果是 Teleport 组件，标记为 TELEPORT
         : isObject(type)
-          ? ShapeFlags.STATEFUL_COMPONENT
+          ? ShapeFlags.STATEFUL_COMPONENT // 如果是对象类型（例如 Vue 组件），标记为 STATEFUL_COMPONENT
           : isFunction(type)
-            ? ShapeFlags.FUNCTIONAL_COMPONENT
+            ? ShapeFlags.FUNCTIONAL_COMPONENT // 如果是函数类型（例如功能组件），标记为 FUNCTIONAL_COMPONENT
             : 0
 
+  // 如果在开发模式下，如果 type 是响应式对象，则会发出警告，建议使用 markRaw 或 shallowRef 来避免不必要的性能开销
   if (__DEV__ && shapeFlag & ShapeFlags.STATEFUL_COMPONENT && isProxy(type)) {
     type = toRaw(type)
     warn(
@@ -811,25 +876,40 @@ export function cloneIfMounted(child: VNode): VNode {
     : cloneVNode(child)
 }
 
+/**
+ * 用于处理和规范化 Vue.js 中虚拟节点（VNode）的子节点。这个函数的目的是确保无论传入的子节点是什么类型，
+ * 最终都会转换为 Vue 可以理解和渲染的标准格式。具体来说，它处理了以下几种子节点类型：数组、对象、函数、字符串以及 null 值
+ * @param vnode
+ * @param children
+ */
 export function normalizeChildren(vnode: VNode, children: unknown): void {
+  // type 用来标记子节点的类型（如数组、文本、插槽等）
   let type = 0
+  // shapeFlag 用来存储 VNode 的类型标志
   const { shapeFlag } = vnode
   if (children == null) {
+    // 如果 children 为 null 或 undefined，将其设置为 null，表示没有子节点
     children = null
   } else if (isArray(children)) {
+    // 如果 children 是数组类型，设置 type 为 ShapeFlags.ARRAY_CHILDREN，标记该子节点为数组类型子节点
     type = ShapeFlags.ARRAY_CHILDREN
   } else if (typeof children === 'object') {
+    // 处理对象类型的子节点
+    // 如果是普通元素或 Teleport，并且 children 是一个插槽对象
     if (shapeFlag & (ShapeFlags.ELEMENT | ShapeFlags.TELEPORT)) {
       // Normalize slot to plain children for plain element and Teleport
+      // 查找插槽的默认内容 (default)，如果存在，则递归调用 normalizeChildren 对插槽内容进行规范化
       const slot = (children as any).default
       if (slot) {
         // _c marker is added by withCtx() indicating this is a compiled slot
+        // 如果插槽内容是编译插槽（通过 withCtx() 添加的标记），则会暂时禁用并恢复 slot._d 标记
         slot._c && (slot._d = false)
         normalizeChildren(vnode, slot())
         slot._c && (slot._d = true)
       }
       return
     } else {
+      // 如果不是插槽对象，则将其标记为插槽类型子节点，并对插槽内容进行必要的上下文标注和类型处理，确保它们被正确的渲染
       type = ShapeFlags.SLOTS_CHILDREN
       const slotFlag = (children as RawSlots)._
       if (!slotFlag && !isInternalObject(children)) {
@@ -850,18 +930,23 @@ export function normalizeChildren(vnode: VNode, children: unknown): void {
       }
     }
   } else if (isFunction(children)) {
+    // 如果 children 是函数，则将其包装为一个插槽对象，并设置 type 为插槽类型。函数本身作为 default 插槽，_ctx 为当前的渲染实例
     children = { default: children, _ctx: currentRenderingInstance }
     type = ShapeFlags.SLOTS_CHILDREN
   } else {
+    // 如果 children 是字符串类型，或者是其他类型（如数字、布尔值等）
     children = String(children)
     // force teleport children to array so it can be moved around
+    // 如果 VNode 是 Teleport 类型，强制将子节点转换为数组，以便能够在渲染过程中移动
     if (shapeFlag & ShapeFlags.TELEPORT) {
       type = ShapeFlags.ARRAY_CHILDREN
       children = [createTextVNode(children as string)]
     } else {
+      // 否则，将其标记为文本类型的子节点
       type = ShapeFlags.TEXT_CHILDREN
     }
   }
+  // 最后，将 children 赋值给 VNode 的 children 属性，并更新 VNode 的 shapeFlag，标记该 VNode 子节点的类型
   vnode.children = children as VNodeNormalizedChildren
   vnode.shapeFlag |= type
 }

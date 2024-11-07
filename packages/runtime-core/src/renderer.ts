@@ -370,6 +370,20 @@ function baseCreateRenderer(
 
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
+  /**
+   * 定义了 Vue 的 patch 函数，该函数用于对比和更新虚拟 DOM 树，以确保 DOM 与虚拟 DOM 保持同步。
+   * patch 函数的核心思想是对比 n1（旧节点）和 n2（新节点），并根据差异更新 container（DOM 容器）中的内容
+   *
+   * @param n1 旧的 VNode
+   * @param n2 新的 VNode
+   * @param container 容器
+   * @param anchor 锚点，用于插入新节点
+   * @param parentComponent 父组件
+   * @param parentSuspense 父 Suspense 组件
+   * @param namespace 命名空间，用于 SVG 等情况
+   * @param slotScopeIds 插槽作用域 ID
+   * @param optimized 是否优化更新
+   */
   const patch: PatchFn = (
     n1,
     n2,
@@ -381,38 +395,42 @@ function baseCreateRenderer(
     slotScopeIds = null,
     optimized = __DEV__ && isHmrUpdating ? false : !!n2.dynamicChildren,
   ) => {
+    // 如果新旧 VNode 完全相同，直接返回
     if (n1 === n2) {
       return
     }
 
     // patching & not same type, unmount old tree
+    // 如果存在旧节点，且新旧节点类型不同，则卸载旧节点
     if (n1 && !isSameVNodeType(n1, n2)) {
-      anchor = getNextHostNode(n1)
-      unmount(n1, parentComponent, parentSuspense, true)
+      anchor = getNextHostNode(n1) // 获取下一个插入位置
+      unmount(n1, parentComponent, parentSuspense, true) // 卸载旧节点
       n1 = null
     }
 
+    // 若新节点设置了跳过标志，则不使用优化模式
     if (n2.patchFlag === PatchFlags.BAIL) {
       optimized = false
       n2.dynamicChildren = null
     }
 
+    // 解构新节点的类型、引用和形状标志
     const { type, ref, shapeFlag } = n2
     switch (type) {
-      case Text:
+      case Text: // 处理文本节点
         processText(n1, n2, container, anchor)
         break
-      case Comment:
+      case Comment: // 处理注释节点
         processCommentNode(n1, n2, container, anchor)
         break
-      case Static:
+      case Static: // 处理静态节点，首次渲染调用挂载，开发模式下更新静态节点
         if (n1 == null) {
           mountStaticNode(n2, container, anchor, namespace)
         } else if (__DEV__) {
           patchStaticNode(n1, n2, container, namespace)
         }
         break
-      case Fragment:
+      case Fragment: // 处理 Fragment 节点
         processFragment(
           n1,
           n2,
@@ -425,7 +443,8 @@ function baseCreateRenderer(
           optimized,
         )
         break
-      default:
+      default: // 其他类型节点（如 Element、Component、Teleport、Suspense）则通过 shapeFlag 区分调用不同的处理函数
+        // 判断 shapeFlag，分别处理元素、组件、Teleport 和 Suspense 节点
         if (shapeFlag & ShapeFlags.ELEMENT) {
           processElement(
             n1,
@@ -477,12 +496,14 @@ function baseCreateRenderer(
             internals,
           )
         } else if (__DEV__) {
+          // 若类型无效，在开发模式中发出警告
           warn('Invalid VNode type:', type, `(${typeof type})`)
         }
     }
 
-    // set ref
+    // set ref 更新 ref
     if (ref != null && parentComponent) {
+      // 在渲染完成后，若 n2 包含 ref 属性，会调用 setRef 函数进行引用更新
       setRef(ref, n1 && n1.ref, parentSuspense, n2 || n1, !n2)
     }
   }
@@ -1125,6 +1146,18 @@ function baseCreateRenderer(
     }
   }
 
+  /**
+   * 用于处理组件节点的挂载和更新，主要分为两种情况：组件首次挂载和更新时调用不同的处理函数
+   * @param n1
+   * @param n2
+   * @param container
+   * @param anchor
+   * @param parentComponent
+   * @param parentSuspense
+   * @param namespace
+   * @param slotScopeIds
+   * @param optimized
+   */
   const processComponent = (
     n1: VNode | null,
     n2: VNode,
@@ -1136,9 +1169,12 @@ function baseCreateRenderer(
     slotScopeIds: string[] | null,
     optimized: boolean,
   ) => {
+    // 将 slotScopeIds 赋值给 n2，这是为了支持作用域插槽（即在组件内部可以访问插槽的特定数据）
     n2.slotScopeIds = slotScopeIds
     if (n1 == null) {
+      // 组件首次挂载，如果 n2 的 shapeFlag 包含 COMPONENT_KEPT_ALIVE 标志，表示该组件被 KeepAlive 包装，因此调用 activate 方法将组件激活，而不是重新挂载
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
+        // 如果组件有 KeepAlive 标志，则调用 KeepAlive 的 activate 方法
         ;(parentComponent!.ctx as KeepAliveContext).activate(
           n2,
           container,
@@ -1147,6 +1183,7 @@ function baseCreateRenderer(
           optimized,
         )
       } else {
+        // 如果没有 KeepAlive 标志，直接挂载组件
         mountComponent(
           n2,
           container,
@@ -1158,10 +1195,22 @@ function baseCreateRenderer(
         )
       }
     } else {
+      // 如果 n1 不为 null，说明组件已存在，需要更新
+      // 调用 updateComponent(n1, n2, optimized) 函数进行组件更新，这样只更新已改变的部分，不需要重新挂载整个组件，提高了性能
       updateComponent(n1, n2, optimized)
     }
   }
 
+  /**
+   * 用于挂载 Vue 组件，即完成组件实例化、设置组件环境、解析异步依赖和渲染逻辑等步骤
+   * @param initialVNode
+   * @param container
+   * @param anchor
+   * @param parentComponent
+   * @param parentSuspense
+   * @param namespace
+   * @param optimized
+   */
   const mountComponent: MountComponentFn = (
     initialVNode,
     container,
@@ -1172,9 +1221,11 @@ function baseCreateRenderer(
     optimized,
   ) => {
     // 2.x compat may pre-create the component instance before actually
-    // mounting
+    // mounting 如果启用了 2.x 兼容模式并且初始 VNode 是兼容的根节点，则可能已提前创建了组件实例
     const compatMountInstance =
       __COMPAT__ && initialVNode.isCompatRoot && initialVNode.component
+
+    // 创建组件实例，或使用已有实例
     const instance: ComponentInternalInstance =
       compatMountInstance ||
       (initialVNode.component = createComponentInstance(
@@ -1183,21 +1234,24 @@ function baseCreateRenderer(
         parentSuspense,
       ))
 
+    // 如果在开发模式下并且组件有 HMR ID，则注册 HMR
     if (__DEV__ && instance.type.__hmrId) {
       registerHMR(instance)
     }
 
     if (__DEV__) {
+      // 设置调试上下文，以便追踪组件的挂载过程
       pushWarningContext(initialVNode)
       startMeasure(instance, `mount`)
     }
 
     // inject renderer internals for keepAlive
+    // 如果是 KeepAlive 组件，注入渲染器的内部信息
     if (isKeepAlive(initialVNode)) {
       ;(instance.ctx as KeepAliveContext).renderer = internals
     }
 
-    // resolve props and slots for setup context
+    // resolve props and slots for setup context 解析 props 和 slots，进行 setup 初始化
     if (!(__COMPAT__ && compatMountInstance)) {
       if (__DEV__) {
         startMeasure(instance, `init`)
@@ -1209,21 +1263,23 @@ function baseCreateRenderer(
     }
 
     // setup() is async. This component relies on async logic to be resolved
-    // before proceeding
+    // before proceeding 处理异步依赖
     if (__FEATURE_SUSPENSE__ && instance.asyncDep) {
-      // avoid hydration for hmr updating
+      // avoid hydration for hmr updating 如果正在进行 HMR 更新，避免 hydration
       if (__DEV__ && isHmrUpdating) initialVNode.el = null
 
+      // 注册异步依赖
       parentSuspense &&
         parentSuspense.registerDep(instance, setupRenderEffect, optimized)
 
-      // Give it a placeholder if this is not hydration
+      // Give it a placeholder if this is not hydration 如果不是 hydration，则给它一个占位符
       // TODO handle self-defined fallback
       if (!initialVNode.el) {
         const placeholder = (instance.subTree = createVNode(Comment))
         processCommentNode(null, placeholder, container!, anchor)
       }
     } else {
+      // 设置渲染效果
       setupRenderEffect(
         instance,
         initialVNode,
@@ -2351,27 +2407,40 @@ function baseCreateRenderer(
   }
 
   let isFlushing = false
+  /**
+   * 定义了一个 render 函数，实现了 Vue 的根渲染逻辑。render 的作用是根据传入的 vnode（虚拟节点）更新指定的 container 容器（通常是 DOM 元素）的内容
+   * @param vnode
+   * @param container
+   * @param namespace
+   */
   const render: RootRenderFunction = (vnode, container, namespace) => {
+    // 1. 判断 vnode 是否为空
     if (vnode == null) {
+      // 如果传入的 vnode 为空，表示需要卸载内容
       if (container._vnode) {
         unmount(container._vnode, null, null, true)
       }
     } else {
+      // 如果 vnode 不为空，则进行节点更新或首次渲染
       patch(
-        container._vnode || null,
-        vnode,
-        container,
-        null,
-        null,
-        null,
-        namespace,
+        // patch 函数的核心是 diff 算法，用于更新 DOM，使之与 vnode 保持一致
+        container._vnode || null, // 之前的 vnode（旧节点），首次渲染时为 null
+        vnode, // 新的 vnode
+        container, // 渲染容器
+        null, // 父节点（root 没有父节点）
+        null, // 提供的上下文
+        null, // 过渡
+        namespace, // 命名空间（用于 SVG 等）
       )
     }
+    // 更新容器的当前 vnode
     container._vnode = vnode
+    // 2. 处理 flush 回调
     if (!isFlushing) {
+      // isFlushing 用来确保回调原子执行
       isFlushing = true
-      flushPreFlushCbs()
-      flushPostFlushCbs()
+      flushPreFlushCbs() // 渲染前回调
+      flushPostFlushCbs() // 渲染后回调
       isFlushing = false
     }
   }

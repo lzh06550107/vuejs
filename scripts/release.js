@@ -18,12 +18,15 @@ import { parseArgs } from 'node:util'
  * }} Package
  */
 
+// 这段代码实现了一个发布脚本，支持发布 Vue 项目及其子包的不同版本（如 canary 版本），主要功能包括版本更新、跨包依赖更新、测试和构建、生成 changelog、发布至 NPM 等
+
 let versionUpdated = false
 
 const { prompt } = enquirer
 const currentVersion = createRequire(import.meta.url)('../package.json').version
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// 使用 parseArgs 解析命令行参数，如 preid、dry、canary、publish 等。这些参数用于控制版本号、跳过某些步骤（如构建、测试）、发布选项等
 const { values: args, positionals } = parseArgs({
   allowPositionals: true,
   options: {
@@ -142,7 +145,9 @@ const getPkgRoot = (/** @type {string} */ pkg) =>
   path.resolve(__dirname, '../packages/' + pkg)
 const step = (/** @type {string} */ msg) => console.log(pico.cyan(msg))
 
+// main 函数是发布的主流程函数
 async function main() {
+  // 1. 检查与远程仓库的同步状态，确保本地代码与远程最新提交一致
   if (!(await isInSyncWithRemote())) {
     return
   } else {
@@ -262,6 +267,7 @@ async function main() {
   // update all package versions and inter-dependencies
   step('\nUpdating cross dependencies...')
   updateVersions(
+    // 更新所有包的 package.json 文件的版本号及依赖项的版本号
     targetVersion,
     isCanary ? renamePackageToCanary : keepThePackageName,
   )
@@ -272,6 +278,7 @@ async function main() {
   await run(`pnpm`, ['run', 'changelog'])
 
   if (!skipPrompts) {
+    // 生成并检查 changelog
     /** @type {{ yes: boolean }} */
     const { yes: changelogOk } = await prompt({
       type: 'confirm',
@@ -287,11 +294,13 @@ async function main() {
   // update pnpm-lock.yaml
   // skipped during canary release because the package names changed and installing with `workspace:*` would fail
   if (!isCanary) {
+    // 如果不是 canary 版本，更新 pnpm 的锁定文件
     step('\nUpdating lockfile...')
     await run(`pnpm`, ['install', '--prefer-offline'])
   }
 
   if (!skipGit) {
+    // 执行 git 操作，提交并推送代码
     const { stdout } = await run('git', ['diff'], { stdio: 'pipe' })
     if (stdout) {
       step('\nCommitting changes...')
@@ -302,7 +311,7 @@ async function main() {
     }
   }
 
-  // publish packages
+  // publish packages 如果指定了 --publish 参数，则调用 publishPackages 函数发布至 NPM
   if (args.publish) {
     await buildPackages()
     await publishPackages(targetVersion)

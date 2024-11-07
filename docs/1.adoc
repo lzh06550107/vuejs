@@ -1,0 +1,536 @@
+= 工具包
+
+== Prettier
+
+Prettier 是一个流行的代码格式化工具，它的主要目的是自动化代码的格式化过程，以确保代码的一致性和可读性。以下是 Prettier 的一些关键特点和功能：
+
+1. 自动格式化
++
+Prettier 会根据预定义的规则自动格式化代码，减少手动调整代码风格的时间。开发者可以专注于编写逻辑，而不必过于担心代码的格式。
+
+2. 一致性
++
+使用 Prettier 可以确保整个代码库中的代码风格一致，无论是谁编写的代码。这样可以提高团队合作的效率，减少因代码风格不同而产生的代码评审问题。
+
+3. 支持多种语言
++
+Prettier 支持多种编程语言和文件类型，包括但不限于：
+
+* JavaScript
+* TypeScript
+* HTML
+* CSS
+* Markdown
+* JSON
+* GraphQL
+
+4. 可配置性
++
+尽管 Prettier 的目标是保持简单和一致性，它仍然允许用户通过配置文件来定制一些格式化选项，例如：
+
+* 使用单引号或双引号
+* 是否在行尾添加分号
+* 每行的最大字符数
+* 箭头函数的括号使用方式
+
+5. 集成开发环境支持
++
+Prettier 可以与多种开发环境和编辑器（如 VSCode、Atom、Sublime Text 等）集成，允许开发者在保存文件时自动格式化代码。
+
+6. CLI 和 API 支持
++
+Prettier 提供命令行工具（CLI）和 API 供开发者在自己的工具链中使用，可以集成到构建过程中或用于批量格式化文件。
+
+Prettier 旨在简化和自动化代码格式化的过程，通过提供一致的代码风格和减少代码评审时的样式争议，使开发者能够更专注于实现功能和逻辑，而不是格式问题。
+
+[source,json5]
+..prettierrc
+----
+{
+  // 禁用分号。配置为 false 时，Prettier 将在行尾不加分号。
+  "semi": false,
+  // 使用单引号。配置为 true 时，Prettier 会将字符串用单引号包裹，而不是双引号。
+  "singleQuote": true,
+  // 在箭头函数中避免使用括号。配置为 "avoid" 时，Prettier 将在箭头函数只有一个参数时省略括号，例如：param => { ... }。
+  "arrowParens": "avoid"
+}
+----
+
+将此配置保存为 `.prettierrc` 文件，或在 package.json 中添加 `prettier` 字段。Prettier 会根据此配置格式化你的代码。
+
+=== 忽略文件
+
+`.prettierignore` 文件用于指定哪些文件或文件夹应被 Prettier 忽略，以避免对它们进行格式化。这类似于 `.gitignore` 文件，功能是告诉 Prettier 不要处理某些特定的路径。
+
+==== 基本语法
+
+在 `.prettierignore` 文件中，你可以使用以下语法来指定要忽略的文件和文件夹：
+
+1. 通配符：
+
+* `*`：匹配任意数量的字符（除 `/` 外）。
+* `**`：匹配任意数量的目录。
+* `?`：匹配一个字符。
+
+2. 注释：可以使用 `#` 开头的行进行注释。
+3. 前导斜杠：如果以 `/` 开头，表示从项目根目录开始匹配。
+
+==== 示例
+
+以下是一个 `.prettierignore` 文件的示例：
+
+[source,text]
+----
+# 忽略所有的构建目录
+build/
+dist/
+
+# 忽略所有的日志文件
+*.log
+
+# 忽略特定的文件
+src/somefile.js
+
+# 忽略特定的文件夹中的所有文件
+src/somefolder/**
+
+# 忽略所有的测试文件
+**/__tests__/**
+----
+
+==== 使用场景
+
+* 构建目录：常见于忽略构建生成的文件或输出目录（如 `build/` 或 `dist/`）。
+* 第三方库：可以忽略 `node_modules/` 目录，因为它包含大量的自动生成代码。
+* 特定文件或文件夹：在某些情况下，你可能不希望对特定的文件进行格式化，例如库文件、测试文件或配置文件。
+
+== eslint
+
+ESLint 是一个用于识别和报告 JavaScript 代码中的问题的工具，它的配置文件允许你自定义代码风格和规则。以下是 ESLint 配置文件的详细解读，包括常见的配置项、规则和使用方式。
+
+== netlify
+
+netlify.toml 是 Netlify 的配置文件，允许用户为其部署的站点自定义构建和部署设置。通过该文件，用户可以控制网站的构建过程、重定向、环境变量等。
+
+== pnpm
+
+pnpm-workspace.yaml 是用于配置 pnpm 工作区的文件。工作区是一种在单一代码库中管理多个包的方式，使得在项目中使用多个相互依赖的包时，能够更高效地进行依赖管理和版本控制。以下是如何创建和配置 pnpm-workspace.yaml 文件的详细指南。
+
+=== 基本结构
+
+一个典型的 pnpm-workspace.yaml 文件结构如下：
+
+[source,yaml]
+----
+packages:
+  - 'packages/*'
+  - 'apps/*'
+  - 'modules/*'
+----
+
+配置说明
+
+* packages: 这是一个数组，用于指定工作区中包含的所有包的位置。你可以使用 glob 模式来匹配多个目录。例如，packages/* 会匹配 packages 目录下的所有子目录。你可以添加多个路径，以包含不同的包或应用程序。
+
+=== 示例
+
+以下是一个更完整的 pnpm-workspace.yaml 示例，展示了如何配置多个包和应用程序：
+
+[source,yaml]
+----
+packages:
+  - 'packages/*'         # 包含所有位于 packages 目录下的包
+  - 'apps/*'             # 包含所有位于 apps 目录下的应用程序
+  - 'modules/*'          # 包含所有位于 modules 目录下的模块
+----
+
+假设你的项目结构如下：
+
+[source,bash]
+----
+my-monorepo/
+│
+├── pnpm-workspace.yaml
+├── package.json
+│
+├── packages/
+│   ├── package-a/
+│   │   └── package.json
+│   └── package-b/
+│       └── package.json
+│
+├── apps/
+│   ├── app-1/
+│   │   └── package.json
+│   └── app-2/
+│       └── package.json
+│
+└── modules/
+    ├── module-1/
+    │   └── package.json
+    └── module-2/
+        └── package.json
+----
+
+在这个结构中，pnpm-workspace.yaml 文件配置为包含 packages、apps 和 modules 目录下的所有包。
+
+=== 其他配置选项
+在某些情况下，你可能还需要定义一些其他的配置选项，如：
+
+* devDependencies: 指定工作区中所有包的开发依赖。
+* hoisting: 配置依赖提升的方式，可以设置为 false 来禁用默认的依赖提升行为。
+
+例如：
+
+[source,yaml]
+----
+packages:
+  - 'packages/*'
+  - 'apps/*'
+
+devDependencies:
+  eslint: ^7.0.0
+
+hoisting: false  # 禁用依赖提升
+----
+
+pnpm-workspace.yaml 文件使得在单一代码库中管理多个包变得更加高效。通过使用工作区，开发者可以共享依赖，减少重复安装的包，从而提高构建速度和降低磁盘空间占用。正确配置工作区能够大幅提升开发体验和团队协作效率。
+
+[source,yaml]
+----
+packages:
+  - 'packages/*'
+  - 'packages-private/*'
+
+catalog:
+  '@babel/parser': ^7.25.3
+  '@babel/types': ^7.25.2
+  'estree-walker': ^2.0.2
+  'magic-string': ^0.30.11
+  'source-map-js': ^1.2.0
+  'vite': ^5.4.0
+  '@vitejs/plugin-vue': ^5.1.2
+
+----
+
+==== packages 部分
+
+作用: 这部分用于定义工作区中包含的所有包的位置。
+
+* packages/*: 匹配 packages 目录下的所有子目录。这通常用于存放公共模块或库。
+* packages-private/*: 匹配 packages-private 目录下的所有子目录。这个目录可能用于存放私有模块或库。
+
+==== catalog 部分
+
+作用: catalog 部分列出了在工作区中使用的具体包及其版本。这对于管理和确保各个包的版本一致性是非常重要的。
+
+* @babel/parser: 版本 ^7.25.3，用于解析 JavaScript 代码。
+* @babel/types: 版本 ^7.25.2，用于处理 Babel 的 AST（抽象语法树）。
+* estree-walker: 版本 ^2.0.2，用于遍历 ESTree 语法树。
+* magic-string: 版本 ^0.30.11，用于处理和修改字符串。
+* source-map-js: 版本 ^1.2.0，用于处理源映射。
+* vite: 版本 ^5.4.0，现代前端构建工具。
+* @vitejs/plugin-vue: 版本 ^5.1.2，用于在 Vite 中支持 Vue.js。
+
+这个配置文件为 pnpm 工作区提供了清晰的结构，定义了工作区的包路径以及所使用的外部依赖的版本。这种组织方式可以帮助开发者在多包项目中管理依赖，确保版本一致性，并促进团队协作。使用 catalog 列出所有依赖包可以让团队成员快速了解项目所需的外部库以及它们的版本，进而提高开发效率和减少潜在的版本冲突。
+
+== ts编译选项配置
+
+tsconfig.json 用于配置 TypeScript 编译器的选项。以下是对该配置的详细解释：
+
+* compilerOptions 字段
+
+** baseUrl: `.` 设置模块解析的基准路径，通常是项目根目录。
+** outDir: `temp` 指定编译输出的目录，编译后的文件将存放在 temp 目录中。
+** sourceMap: `false` 禁用生成源映射文件。这通常用于调试目的，如果需要调试源代码，应该设置为 true。
+** target: `es2016` 指定编译输出的 JavaScript 版本。这里设置为 ECMAScript 2016。
+** newLine: `LF` 指定换行符类型，LF 表示使用换行符。
+** useDefineForClassFields: `false` 指定类字段的行为。如果设置为 true，将使用 ECMAScript 提案中的 define 语义。
+** module: `esnext` 设置输出的模块系统为 ESNext，表示使用最新的 ECMAScript 模块标准。
+** moduleResolution: `bundler` 指定模块解析策略，这里使用 bundler 适用于打包工具。
+** allowJs: `false` 禁止在 TypeScript 中编译 JavaScript 文件。
+** strict: `true` 启用所有严格类型检查选项，提高类型安全性。
+** noUnusedLocals: `true` 禁止声明未使用的局部变量。
+** experimentalDecorators: `true` 启用对装饰器的支持，这通常用于类和属性的修饰。
+** resolveJsonModule: `true` 允许导入 JSON 文件作为模块。
+** isolatedModules: `true` 确保每个文件可以单独编译，常用于与 Babel 等工具集成。
+** skipLibCheck: `true` 跳过库文件的类型检查，以加快编译速度。
+** esModuleInterop: `true` 允许使用 ES6 模块和 CommonJS 模块的互操作性。
+** removeComments: `false` 指定是否在输出文件中移除注释，设置为 false 表示保留注释。
+** jsx: `preserve` 指定 JSX 代码的处理方式，preserve 表示保留 JSX 语法。
+** lib: `["es2016", "dom"]` 指定项目使用的库文件，这里包含 ECMAScript 2016 和 DOM 库。
+** types: `["vitest/globals", "puppeteer", "node"]` 指定要包含的类型定义，这里包括 Vitest、Puppeteer 和 Node.js 的类型。
+** rootDir: `.` 设置项目的根目录，通常是项目的起始位置。
+** paths: 定义路径映射，可以简化模块导入。示例：
+*** @vue/compat 指向 packages/vue-compat/src
+*** @vue/* 指向 packages/*/src
+*** vue 指向 packages/vue/src
+** isolatedDeclarations: `true` 启用孤立声明模式，每个声明都在独立的模块中。
+** composite: `true` 启用项目的复合构建，允许项目间的引用和依赖关系管理。
+
+* include 字段
+
+** include: 指定包含的文件和目录。这些文件将在编译时被处理。包含的文件和目录包括：
+*** `packages/global.d.ts`：全局类型定义。
+*** `+packages/*/src+`：所有包的源代码。
+*** `+packages/*/__tests__+`：所有包的测试文件。
+*** `packages/vue/jsx-runtime`：Vue 的 JSX 运行时文件。
+*** `packages/runtime-dom/types/jsx.d.ts`：DOM 的 JSX 类型定义。
+*** `+scripts/*+`：所有脚本文件。
+*** `+rollup.*.js+`：所有 Rollup 配置文件。
+
+* exclude 字段
+
+** exclude: 指定要排除的文件和目录，这些文件将不会被 TypeScript 编译。
+*** 这里排除了 `+packages-private/sfc-playground/src/vue-dev-proxy*+` 目录中的所有文件。
+
+* extends 字段
+** extends: `./tsconfig.json` 这个字段表示该配置文件扩展自另一个配置文件，通常用于继承已有的 TypeScript 配置。在这里，它继承了项目根目录下的 tsconfig.json 文件中的配置。
+
+* compilerOptions 字段
+** types: ["node"] 指定要包含的类型定义，这里包括 Node.js 的类型。这意味着在项目中可以使用 Node.js 的类型支持，如 process、Buffer 等。
+** declaration: `true` 指定生成声明文件（.d.ts 文件），用于类型定义的输出。
+** emitDeclarationOnly: `true` 指定仅生成声明文件，而不生成 JavaScript 输出。这通常用于创建类型库或提供类型定义的包。
+** stripInternal: `true` 指定在生成的声明文件中删除标记为 internal 的符号，这意味着内部实现细节不会被导出给使用者。
+** composite: `false` 禁用复合项目构建，通常在不需要对其他项目的依赖进行管理时使用。
+
+* include 字段
++
+指定要包含的文件和目录。这些文件将被 TypeScript 编译器处理并生成相应的声明文件。包含的文件和目录包括：
+
+** packages/global.d.ts: 全局类型定义文件。
+** packages/vue/src: Vue 源代码。
+** packages/vue-compat/src: Vue 的兼容性源代码。
+** packages/compiler-core/src: 编译核心的源代码。
+** packages/compiler-dom/src: DOM 编译相关的源代码。
+** packages/runtime-core/src: 运行时核心的源代码。
+** packages/runtime-dom/src: DOM 运行时相关的源代码。
+** packages/reactivity/src: 响应式相关的源代码。
+** packages/shared/src: 共享模块的源代码。
+** packages/compiler-sfc/src: 单文件组件编译相关的源代码。
+** packages/compiler-ssr/src: 服务器端渲染编译相关的源代码。
+** packages/server-renderer/src: 服务器渲染相关的源代码。
+
+== Vitest
+
+在使用 Vitest 进行测试时，通常会看到多个配置文件，例如 vitest.config.ts、vitest.e2e.config.ts、vitest.unit.config.ts 和 vitest.workspace.ts。它们各自的作用如下：
+
+1. vitest.config.ts
+* 作用: 这是 Vitest 的主要配置文件。它用于定义全局的测试设置，包括测试环境、文件匹配模式、插件配置、测试超时设置等。
+* 内容: 通常包含测试框架的基本配置，例如 test、setupFiles、include、exclude、globals 等。适合于运行大多数常规的单元测试。
+2. vitest.e2e.config.ts
+* 作用: 此配置文件专门用于端到端（E2E）测试。E2E 测试通常涉及对整个应用程序的行为进行测试，而不仅仅是单个组件或模块。
+* 内容: 包含与 E2E 测试相关的设置，如测试文件路径、需要加载的浏览器环境、HTTP 服务器配置等。可以配置不同的测试运行时环境，以适应浏览器测试或集成测试的需求。
+3. vitest.unit.config.ts
+* 作用: 该配置文件专注于单元测试的设置。单元测试通常针对小的、独立的功能模块进行测试。
+* 内容: 包含专门为单元测试优化的设置，可能包括 mocks、stubs、以及对特定模块的路径别名设置等。适合于快速测试单个函数或类的逻辑。
+4. vitest.workspace.ts
+* 作用: 此配置文件通常用于配置工作区级别的设置，适合于多个项目或包的 monorepo 环境中使用。
+* 内容: 可能包括全局的测试配置和共享的设置，适用于多个项目的环境变量或设置。能够帮助简化在工作区中管理多个测试配置文件的复杂性。
+
+这些配置文件帮助开发者根据不同的测试需求和项目结构来管理和组织测试设置。通过分离不同类型的测试配置，可以更好地控制每种测试的行为和环境，同时提高测试的可维护性和可读性。通常建议在同一项目中使用适合其目的的配置文件，以保持测试的整洁和高效。
+
+=== vitest.workspace.ts
+
+[source,js]
+----
+import { defineWorkspace } from 'vitest/config'
+
+export default defineWorkspace([
+  './vitest.unit.config.ts',
+  './vitest.e2e.config.ts',
+])
+----
+
+1. import { defineWorkspace } from 'vitest/config'
+* 作用: 从 Vitest 的配置模块中导入 defineWorkspace 函数。这个函数用于定义工作区配置，允许您集中管理多个测试配置文件。
+2. defineWorkspace([...])
+* 作用: defineWorkspace 函数接收一个数组作为参数，数组中列出了要包含的多个配置文件。这样可以在一个工作区中组合多个不同的测试配置，便于管理和组织测试。
+3. 数组内容
+* './vitest.unit.config.ts': 指向单元测试的配置文件。此文件通常包含专门为单元测试设置的配置，例如测试用例的匹配模式、文件路径、需要的插件等。
+
+* './vitest.e2e.config.ts': 指向端到端（E2E）测试的配置文件。此文件的配置通常涉及整个应用程序的测试，可能包括浏览器环境的设置、请求处理等。
+
+使用 defineWorkspace 定义工作区的好处在于，可以在一个地方集中管理不同类型的测试配置。这样的配置组织使得项目结构更清晰，开发者可以根据需要轻松切换和运行不同类型的测试。通过将单元测试和 E2E 测试分开，可以确保各自的测试配置独立而清晰，从而提高了测试的可维护性和可扩展性。
+
+=== vitest.config.ts
+
+[source,js]
+----
+// 从 Vitest 导入默认配置和配置定义函数
+import { configDefaults, defineConfig } from 'vitest/config'
+// 导入自定义的路径别名，通常用于简化模块的导入
+import { entries } from './scripts/aliases.js'
+
+// 通过 defineConfig 来定义 Vitest 的配置，确保类型安全和自动补全
+export default defineConfig({
+  define: { // 定义全局常量，这些常量可以在代码中使用
+    __DEV__: true, // 指示当前是开发环境
+    __TEST__: true, // 指示当前是测试环境
+    __VERSION__: '"test"', // 设置版本号为 "test"
+    __BROWSER__: false,
+    __GLOBAL__: false,
+    __ESM_BUNDLER__: true,
+    __ESM_BROWSER__: false,
+    __CJS__: true,
+    __SSR__: true,
+    __FEATURE_OPTIONS_API__: true,
+    __FEATURE_SUSPENSE__: true,
+    __FEATURE_PROD_DEVTOOLS__: false,
+    __FEATURE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+    __COMPAT__: true,
+  },
+  resolve: {
+    alias: entries, // 设置模块别名，使得导入模块时可以使用简化的路径
+  },
+  test: { // 该部分配置了与测试相关的选项
+    globals: true, // 启用全局测试环境的支持，允许在测试中直接使用测试相关的全局变量
+    pool: 'threads', // 指定测试的执行方式，选择使用线程池来并行运行测试
+    setupFiles: 'scripts/setup-vitest.ts', // 指定在测试运行前执行的设置文件，通常用于全局配置和初始化
+    environmentMatchGlobs: [ // 定义不同目录使用不同测试环境，匹配模式指定某些包使用 jsdom 环境
+      ['packages/{vue,vue-compat,runtime-dom}/**', 'jsdom'],
+    ],
+    sequence: { // 配置测试的执行顺序，可以控制测试钩子的执行方式
+      hooks: 'list',
+    },
+    coverage: { // 配置代码覆盖率相关选项
+      provider: 'v8', // 使用 V8 作为代码覆盖率提供者
+      reporter: ['text', 'html'], // 设置输出的覆盖率报告格式，既生成文本格式也生成 HTML 格式的报告
+      include: ['packages/*/src/**'], // 指定哪些文件应该包含在覆盖率统计中
+      exclude: [ // 指定不需要计算覆盖率的文件，通常是那些在测试中不使用的文件或在其他地方已经测试过的文件
+        // entries that are not really used during tests
+        'packages/vue-compat/**',
+        'packages/vue/src/dev.ts',
+        'packages/vue/src/runtime.ts',
+        // not testable during unit tests
+        'packages/runtime-core/src/profiling.ts',
+        'packages/runtime-core/src/featureFlags.ts',
+        'packages/runtime-core/src/customFormatter.ts',
+        // tested via e2e so no coverage is collected
+        'packages/runtime-core/src/hydrationStrategies.ts',
+        'packages/runtime-dom/src/components/Transition*',
+      ],
+    },
+  },
+})
+----
+
+该配置文件为 Vitest 提供了全面的测试环境设置，包括全局变量、模块解析、测试环境、代码覆盖率等选项。通过这种方式，可以确保在执行单元测试时有一致的行为，同时可以有效地管理测试的执行和报告。这种清晰的配置结构有助于团队协作和测试的可维护性。
+
+=== vitest.unit.config.ts
+
+[source,js]
+----
+import { configDefaults, mergeConfig } from 'vitest/config'
+import config from './vitest.config'
+
+// 通过 mergeConfig 将基本配置与特定的单元测试配置合并
+export default mergeConfig(config, {
+  test: { // 主要定义了测试相关的设置
+    name: 'unit', // 设置当前测试的名称为 'unit'，通常用于标识测试类型或环境
+    // 定义要排除的测试文件模式
+    // ...configDefaults.exclude: 首先引入 Vitest 默认的排除模式，确保默认的排除规则得以保留
+    // '**/e2e/**': 添加额外的排除规则，排除所有与 E2E 测试相关的文件，这样在运行单元测试时不会执行 E2E 测试
+    exclude: [...configDefaults.exclude, '**/e2e/**'],
+  },
+})
+----
+
+该配置文件的主要作用是通过合并基础配置和特定的单元测试配置，创建一个专门用于单元测试的配置。通过这种方式，可以在保持基础配置一致性的同时，灵活地调整特定环境下的配置选项，确保单元测试与其他类型的测试（如 E2E 测试）能够被清晰地分开。这种分离有助于提高测试的可维护性和可读性。
+
+=== vitest.e2e.config.ts
+
+[source,js]
+----
+import { mergeConfig } from 'vitest/config'
+import config from './vitest.config'
+
+export default mergeConfig(config, {
+  test: { // 主要定义了 E2E 测试的相关设置
+    name: 'e2e', // 设置当前测试的名称为 'e2e'，这有助于在运行测试时区分测试类型
+    poolOptions: { // 配置线程池选项
+      threads: {
+        // 根据环境变量 CI 的值决定是否使用单线程。如果在 CI 环境中（例如 GitHub Actions、GitLab CI 等），将 singleThread 设置为 true，以确保测试在一个线程中运行。这通常用于避免在 CI 环境中出现并发问题
+        singleThread: !!process.env.CI,
+      },
+    },
+    // 指定要包含的测试文件路径
+    // 这里指定了只包含 packages/vue/__tests__/e2e/ 目录下以 .spec.ts 结尾的文件。这意味着只有这些文件会被执行作为 E2E 测试
+    include: ['packages/vue/__tests__/e2e/*.spec.ts'],
+  },
+})
+----
+
+该配置文件主要用于设置 E2E 测试的特定配置。通过合并基础配置与 E2E 测试的配置，您可以在运行 E2E 测试时使用特定的选项，例如控制是否在单线程中运行测试，以及明确指定哪些文件应该被包含。这种方式使得配置管理更加灵活和清晰，尤其是在多种测试环境下。
+
+== rollup
+
+rollup.config.js 和 rollup.dts.config.js 是用于 Rollup 构建工具的配置文件，但它们的目的和内容是不同的。下面是这两个配置文件的主要区别：
+
+1. rollup.config.js
+* 目的：主要用于配置 JavaScript 或 TypeScript 的打包过程。这个文件定义了如何将项目的源代码（例如 ES6 模块、CommonJS 模块等）打包成不同格式的输出文件（如 CJS、ESM、UMD 等）。
+* 内容：
+** 输入和输出配置：指定要打包的入口文件和输出文件的格式、路径等。
+** 插件：可以引入不同的 Rollup 插件来处理代码的转译、压缩、代码分割等功能。例如，使用 babel 插件将 ES6 转换为 ES5，或者使用 terser 插件进行代码压缩。
+** 外部依赖：配置哪些依赖在打包时应被排除，以减小打包后的文件大小。
+2. rollup.dts.config.js
+* 目的：主要用于生成 TypeScript 的声明文件（.d.ts）。在 TypeScript 项目中，声明文件用于描述模块的结构和类型信息，以便其他 TypeScript 项目能够正确地使用这些模块。
+* 内容：
+** 输入和输出配置：通常会指定要生成声明文件的源代码目录和输出的声明文件目录。
+** 插件：可能会使用如 rollup-plugin-dts 等专门的插件来处理 TypeScript 声明文件的生成。
+** 类型定义：可能会处理特定于类型的配置，如 tsconfig.json 中的设置，以确保生成的声明文件准确反映代码的类型。
+
+rollup.config.js 主要关注于打包 JavaScript 代码，而 rollup.dts.config.js 关注于生成 TypeScript 的类型声明文件。它们的配置和使用场景不同，通常在一个项目中都会存在，但各自负责的功能和目标是明确区分的。
+
+=== 各个生成包
+
+这些文件都是 Vue.js 的不同构建版本，旨在满足不同的使用场景和模块化系统。下面是对每个文件的详细解释和它们之间的区别：
+
+1. vue.esm-bundler.js
+
+* 格式: ES Module (ESM)
+* 用途: 这个版本是为现代构建工具（如 Rollup 和 Webpack）设计的。它支持 Tree Shaking（摇树优化），使得只包含实际使用的代码，减少打包后的体积。
+* 特点: 适用于在需要将 Vue 与其他库捆绑在一起的场景，支持模块化和懒加载。
+
+2. vue.esm-browser.js
+
+* 格式: ES Module (ESM)
+* 用途: 专为浏览器环境设计的 ESM 版本，可以直接在现代浏览器中使用。它可以通过 <script type="module"> 标签引入。
+* 特点: 支持现代浏览器的特性，适合直接在网页中使用，允许使用模块化的语法。
+
+3. vue.cjs.js
+
+* 格式: CommonJS (CJS)
+* 用途: 这个版本用于 Node.js 环境和 CommonJS 模块系统。它通常用于需要使用 require 语法的情况。
+* 特点: 不支持 Tree Shaking，适合老旧的模块系统和 Node.js 服务器端的开发。
+
+4. vue.global.js
+
+* 格式: IIFE (Immediately Invoked Function Expression)
+* 用途: 这个版本是一个自执行的函数，适合在全局范围内使用。它会将 Vue 作为一个全局变量挂载到 window 对象上。
+* 特点: 适合在没有模块系统的旧浏览器或不支持模块化的环境中使用。
+
+5. vue.runtime.esm-bundler.js
+
+* 格式: ES Module (ESM)
+* 用途: 这个版本是 Vue 的运行时版本，专门用于与编译器一起使用，适合用于需要编译的 Vue 单文件组件（SFC）。
+* 特点: 包含用于渲染和生命周期管理的核心功能，但不包括模板编译器，减少了包的体积。
+
+6. vue.runtime.esm-browser.js
+
+* 格式: ES Module (ESM)
+* 用途: 和 vue.runtime.esm-bundler.js 类似，但这是专为在浏览器中使用而设计的运行时版本。
+* 特点: 适合现代浏览器环境，并且没有编译器支持。
+
+7. vue.runtime.global.js
+
+* 格式: IIFE (Immediately Invoked Function Expression)
+* 用途: 这是 Vue 的全局运行时版本，适用于浏览器，允许全局使用 Vue。
+* 特点: 适合不需要模块支持的环境，但同样不包含模板编译器的功能。
+
+总结
+
+* ESM 版本（如 vue.esm-bundler.js 和 vue.esm-browser.js）支持现代模块化并具有较小的打包体积。
+* CJS 版本（vue.cjs.js）用于传统 Node.js 应用。
+* Global 版本（如 vue.global.js）用于无模块支持的环境，适合直接在浏览器中使用。
+* Runtime 版本（vue.runtime.*）不包括模板编译器，适合与预编译的 Vue 组件一起使用。

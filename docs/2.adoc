@@ -1,0 +1,196 @@
+= 常识
+
+== DOM 元素的 属性 (property)， 属性 (attribute) 区别
+
+在 DOM (文档对象模型) 中，**属性 (property)** 和 **属性 (attribute)** 是两个不同的概念，尽管它们通常都用于表示元素的某些特征或状态。理解它们之间的区别对于处理 DOM 和 JavaScript 操作非常重要。
+
+=== **属性 (Attribute)**
+
+- **定义**：属性是 HTML 元素中声明的特性。它们是 HTML 元素的原始字符串形式，通常在 HTML 文件中作为标签的一部分定义。
+- **存储位置**：属性存储在元素的 **HTML 标签** 中，例如 `<input type="text" value="hello">` 中的 `type` 和 `value` 就是元素的属性。
+- **生命周期**：属性是 **静态的**，即它们的值直接来源于 HTML 元素的初始定义，并且只会在页面加载时被解析一次。属性的更改不会立即反映到 DOM 元素的 **属性**（property）上，除非重新解析页面。
+- **更新**：直接在 HTML 中修改属性会更改页面上元素的外观或行为，但不会影响 DOM 中的 **属性** 值。
+
+=== **属性 (Property)**
+
+- **定义**：属性是 DOM 元素的 **内部表示**，它们是 JavaScript 对象的键值对，可以通过 JavaScript 代码访问和修改。
+- **存储位置**：属性存储在 DOM 元素的对象模型中，通常是通过 JavaScript 操作。例如，`document.getElementById('myInput').value` 中的 `value` 是 DOM 元素的属性。
+- **生命周期**：属性是 **动态的**，它们在 JavaScript 中可以随时修改，且修改会立即反映在 DOM 元素上。
+- **更新**：修改 DOM 元素的属性会即时更新其对应的页面行为或状态，例如修改一个 `input` 元素的 `value` 会立即影响该输入框的显示内容。
+
+=== **二者关系与区别**
+
+- **名称相同的属性**：有许多 HTML 属性（attribute）和 DOM 属性（property）具有相同的名称，但它们的值和行为有所不同。例如：
+- `<input type="text" value="hello">` 中的 `value` 属性在 HTML 中表示元素的初始值。
+- `document.querySelector('input').value` 中的 `value` 属性表示当前输入框的值。
+
+  在这种情况下，**HTML 属性**是元素在加载时的初始状态，而**DOM 属性**反映了用户与元素交互后的当前状态。
+
+- **更新反向同步**：当你通过 JavaScript 修改 DOM 元素的属性时，通常 **不会**同步更新 HTML 属性。例如，如果你通过 `element.value = "new value"` 修改 `input` 元素的 `value` 属性，这个值会在页面中反映出来，但 **HTML** 中的 `value` 属性不会改变，除非重新加载页面。
+
+- **属性与属性的例外**：
+- **Boolean 属性**：例如 `<input checked>` 这样的 Boolean 属性，在 HTML 中只会存在与否（没有 `checked="false"`），而在 DOM 中，它会被表示为 `true` 或 `false`。例如，`<input checked>` 的 DOM 属性 `checked` 值为 `true`，而未设置时 `checked` 值为 `false`。
+- **SVG 和 MathML**：在 SVG 和 MathML 中，某些属性（如 `width`, `height`, `viewBox` 等）可能具有与 HTML 中不同的处理规则和表现，具体取决于浏览器如何处理这些元素。
+
+=== **例子**
+
+==== 示例 1：`input` 元素
+```html
+<input type="text" value="initial value">
+```
+
+- **HTML 属性**（`attribute`）：`value="initial value"` — 页面加载时，`input` 的 `value` 为 "initial value"。
+- **DOM 属性**（`property`）：通过 JavaScript 修改 `document.querySelector('input').value` 会立即反映更改。
+
+==== 示例 2：Boolean 属性
+```html
+<input checked>
+```
+
+- **HTML 属性**（`attribute`）：`checked` 存在表示 `true`，否则不存在。
+- **DOM 属性**（`property`）：`document.querySelector('input').checked` 为 `true` 或 `false`，可以通过 JavaScript 更改。
+
+==== 示例 3：`style` 属性
+```html
+<button style="color: red;">Click me</button>
+```
+
+- **HTML 属性**（`attribute`）：`style="color: red;"` 由页面的 HTML 代码定义。
+- **DOM 属性**（`property`）：可以通过 `document.querySelector('button').style.color` 获取并修改内联样式。
+
+=== 5. **总结**
+
+- **HTML 属性**：元素在页面加载时的原始静态数据，通常是字符串，定义在 HTML 标签内。
+- **DOM 属性**：通过 JavaScript 访问和修改的元素的动态状态，反映了当前元素的行为和状态。
+
+在开发过程中，理解二者的区别可以帮助你更准确地处理 DOM 元素的行为和页面渲染。
+
+== tree-shakable
+
+**Tree-shaking** 是一种优化技术，用于 JavaScript 和前端框架中，目的是去除那些没有被使用到的代码（即死代码），从而减小最终打包文件的大小。它的工作原理是在构建过程中，通过静态分析代码，确定哪些模块或函数是被引用的，哪些是没有被使用的，然后从最终的输出文件中去除这些未使用的部分。
+
+**Tree-shakable**（可树摇）指的是一个库或模块可以被 tree-shaking 工具正确识别和优化的特性。通常来说，只有符合以下条件的代码才是“可树摇”的：
+
+1. **ES模块语法**：Tree-shaking 依赖于静态分析，而 ES6 的模块语法（`import` 和 `export`）是静态的，这意味着在构建时可以明确地知道哪些导入和导出是被使用的，哪些是没有被引用的。
+
+2. **无副作用的代码**：为了能有效地进行 tree-shaking，模块中的代码应该没有副作用，也就是说它们不会影响到外部的状态或执行。副作用的代码，比如修改全局变量，或调用不透明的函数等，可能导致编译器误判哪些代码可以删除，从而影响 tree-shaking 的效果。
+
+=== 如何使代码成为 Tree-shakable：
+
+- **使用 ES6 模块**：使用 `import` 和 `export` 替代 CommonJS 的 `require` 和 `module.exports`。
+
+- **避免副作用**：避免在模块中执行不必要的操作，如全局变量赋值、修改外部状态等。代码的副作用可能会阻止 tree-shaking 工具删除那些未使用的代码。
+
+- **启用 Tree-shaking**：确保构建工具（如 Webpack、Rollup、Vite 等）正确启用 tree-shaking。大多数现代打包工具默认支持 tree-shaking，但也需要一些配置来确保生成的代码是“无副作用”的。
+
+=== 举例说明：
+假设有一个库，包含多个函数：
+
+```javascript
+// utils.js
+export const add = (a, b) => a + b;
+export const multiply = (a, b) => a * b;
+export const log = (message) => console.log(message);
+```
+
+如果你只使用了 `add` 函数，而没有使用 `multiply` 和 `log` 函数，在进行 tree-shaking 时，`multiply` 和 `log` 函数会被从打包的文件中移除，因为它们没有被引用。这意味着最终的打包文件中只会包含 `add` 函数，从而减小了文件体积。
+
+=== 总结
+
+**Tree-shakable** 是指代码可以被静态分析并优化以去除未使用的部分，从而减小最终的打包体积。它通常依赖于使用 ES6 模块和无副作用的代码。通过这种优化技术，开发者能够更高效地使用代码，减少冗余，提高加载性能。
+
+== defineCustomElement 和 defineComponent 区别
+
+`defineCustomElement` 和 `defineComponent` 都是 Vue 中定义组件的方法，但它们的应用场景和目的略有不同：
+
+=== `defineComponent`
+
+`defineComponent` 是 Vue 3 中定义组件的标准方法，用于创建 Vue 组件。在 Vue 单页面应用（SPA）中使用时，通过 `defineComponent` 定义的组件通常会被挂载到 DOM 元素上，成为 Vue 应用的一部分。
+
+==== 特点
+- **主要用于 Vue 应用的内部组件**，可以通过 `<MyComponent />` 这种方式在模板中使用。
+- **具备响应式数据、属性和生命周期钩子**，这些都是 Vue 组件的特性。
+- **适用于 Vue 应用的组件树**。在 Vue 单页应用中，每个组件是由 Vue 的渲染器管理的。
+
+==== 示例
+
+```typescript
+import { defineComponent } from 'vue'
+
+const MyComponent = defineComponent({
+  props: {
+    title: String,
+  },
+  template: `<div>{{ title }}</div>`,
+})
+```
+
+=== `defineCustomElement`
+
+`defineCustomElement` 用于将 Vue 组件封装成符合 Web Components 标准的自定义元素（Custom Element）。这些自定义元素可以在任何支持 Web Components 的环境中使用，而不仅限于 Vue 应用。例如，可以在非 Vue 项目中使用 `defineCustomElement` 创建的自定义元素。
+
+==== 特点
+- **用于创建 Web Components**，可以在非 Vue 项目中使用。
+- **支持自定义元素的特性**，如 `shadow DOM`、自定义样式隔离、CSS 隔离等。
+- **与原生 Web Components 更加兼容**，允许开发者将 Vue 组件导出为自定义元素，供其他框架或 HTML 项目使用。
+
+==== 示例
+
+```typescript
+import { defineCustomElement } from 'vue'
+import MyComponent from './MyComponent.vue'
+
+// 将 MyComponent 转换为自定义元素
+const MyCustomElement = defineCustomElement(MyComponent)
+
+// 注册自定义元素
+customElements.define('my-custom-element', MyCustomElement)
+```
+
+=== 区别总结
+
+| 特性                 | `defineComponent`                                      | `defineCustomElement`                              |
+|----------------------|--------------------------------------------------------|----------------------------------------------------|
+| 主要用途             | Vue 应用内的组件定义                                   | 将组件导出为原生 Web Components（自定义元素）      |
+| 使用场景             | Vue 应用内部组件树                                     | 在 Vue 或非 Vue 环境中使用自定义元素               |
+| 生命周期             | Vue 的组件生命周期钩子                                 | 支持 Web Components 的原生生命周期                 |
+| 样式隔离             | 不支持 `shadow DOM`，遵循 Vue 应用的样式管理            | 支持 `shadow DOM` 和样式隔离                       |
+| 注册方式             | Vue 自动注册组件                                       | 使用 `customElements.define` 手动注册              |
+| 兼容性               | 只能在 Vue 应用内使用                                   | 可以在任何支持自定义元素的环境中使用               |
+
+[cols="2,4,4"]
+|===
+|特性|defineComponent|defineCustomElement
+
+|主要用途
+|Vue 应用内的组件定义
+|将组件导出为原生 Web Components（自定义元素）
+
+|使用场景
+|Vue 应用内部组件树
+|在 Vue 或非 Vue 环境中使用自定义元素
+
+|生命周期
+|Vue 的组件生命周期钩子
+|支持 Web Components 的原生生命周期
+
+|样式隔离
+|不支持 shadow DOM，遵循 Vue 应用的样式管理
+|支持 shadow DOM 和样式隔离
+
+|注册方式
+|Vue 自动注册组件
+|使用 customElements.define 手动注册
+
+|兼容性
+|只能在 Vue 应用内使用
+|可以在任何支持自定义元素的环境中使用
+|===
+
+=== 选择哪个？
+
+- 如果在 Vue 应用中使用组件，选择 `defineComponent`。
+- 如果需要在非 Vue 项目中使用组件，或需要样式隔离的自定义元素，选择 `defineCustomElement`。
+
+
+

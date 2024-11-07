@@ -5,6 +5,9 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import MagicString from 'magic-string'
 import dts from 'rollup-plugin-dts'
 
+// 主要用于处理 TypeScript 声明文件的打包和转换
+
+// 代码检查 temp/packages 目录是否存在，如果不存在则给出警告并退出。这个目录通常是 TypeScript 编译后的临时文件存放位置
 if (!existsSync('temp/packages')) {
   console.warn(
     'no temp dts files found. run `tsc -p tsconfig.build-browser.json && tsc -p tsconfig.build-node.json` first.',
@@ -12,12 +15,14 @@ if (!existsSync('temp/packages')) {
   process.exit(1)
 }
 
+// 获取所有的包名，并根据环境变量 TARGETS 筛选出目标包
 const packages = readdirSync('temp/packages')
 const targets = process.env.TARGETS ? process.env.TARGETS.split(',') : null
 const targetPackages = targets
   ? packages.filter(pkg => targets.includes(pkg))
   : packages
 
+// 导出 Rollup 配置：为每个目标包创建一个 Rollup 配置对象，指定输入、输出、插件和警告处理函数
 export default targetPackages.map(
   /** @returns {import('rollup').RollupOptions} */
   pkg => {
@@ -49,7 +54,7 @@ export default targetPackages.map(
  *    otherwise it gets weird in vitepress `defineComponent` call with
  *    "the inferred type cannot be named without a reference"
  * 2. Append custom augmentations (jsx, macros)
- *
+ * 这个函数返回一个 Rollup 插件，用于处理 TypeScript 声明文件
  * @param {string} pkg
  * @returns {import('rollup').Plugin}
  */
@@ -57,7 +62,9 @@ function patchTypes(pkg) {
   return {
     name: 'patch-types',
     renderChunk(code, chunk) {
+      // 使用 MagicString 对生成的代码进行修改
       const s = new MagicString(code)
+      // 使用 @babel/parser 解析 TypeScript 代码
       const ast = parse(code, {
         plugins: ['typescript'],
         sourceType: 'module',
@@ -88,7 +95,9 @@ function patchTypes(pkg) {
       const shouldRemoveExport = new Set()
 
       // pass 0: check all exported types
+      // 遍历 AST（抽象语法树），进行以下几项操作
       for (const node of ast.program.body) {
+        // 1.处理声明：将类型转换为内联导出，并从大导出声明中移除它们。这是为了避免在 VitePress 中使用 defineComponent 时遇到类型问题
         if (node.type === 'ExportNamedDeclaration' && !node.source) {
           for (let i = 0; i < node.specifiers.length; i++) {
             const spec = node.specifiers[i]
@@ -190,7 +199,7 @@ function patchTypes(pkg) {
  * the only way to correct provide types for both Node ESM and CJS is to have
  * two separate declaration files, so we need to copy vue.d.ts to vue.d.mts
  * upon build.
- *
+ * 这是另一个 Rollup 插件，用于将 vue.d.ts 复制到 vue.d.mts。根据 TypeScript 的文档，为了支持 Node 的 ESM 和 CJS 这两种模块格式，需要分别生成两个声明文件
  * @returns {import('rollup').Plugin}
  */
 function copyMts() {
